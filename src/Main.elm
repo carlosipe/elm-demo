@@ -1,7 +1,7 @@
 module Main exposing (..)
 
 import Browser
-import Html exposing(div, text, h1)
+import Html exposing(div, text, h1, h2)
 import Html.Attributes exposing (class, style)
 import Html.Events exposing (onClick)
 import Dict exposing (Dict)
