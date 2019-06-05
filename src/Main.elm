@@ -1,7 +1,7 @@
 module Main exposing (..)
 
 import Browser
-import Html exposing(div, text)
+import Html exposing(div, text, h1)
 import Html.Attributes exposing (class, style)
 import Html.Events exposing (onClick)
 import Dict exposing (Dict)
@@ -138,16 +138,19 @@ view model =
     ]
 
 headerView model =
-    div [ class "header" ] [
+    h1[ class "header" ] [
         text (headerText model.gameState model.currentPlayer)
         ]
 
 boardView model =
-    div []
+    div [ style "background-color" "rgba(52,101,164,1)"
+        , style "width" "440px"
+        , style "display" "flex"
+        , style "margin-top" "10px"]
     (drawableBoard model.board
             |> List.indexedMap
                 (\columnNumber boardColumn ->
-                    div [ onClick (Play (columnNumber + 1)) ]
+                    div [ class "column", onClick (Play (columnNumber + 1)) ]
                         (boardColumn
                             |> List.map
                                 (\fieldContent ->
@@ -158,8 +161,15 @@ boardView model =
         )
 
 boardField fieldContent =
-    div [style "background-color" (fieldContentToColor fieldContent)]
-    [text "-"]
+    div
+    [ style "background-color" (fieldContentToColor fieldContent)
+    , style "border-style" "solid"
+    , style "width" "50px"
+    , style "height" "50px"
+    , style "border-radius" "50px"
+    , style "margin" "2.5px"
+    ]
+    []
 
 -- view helper functions
 
