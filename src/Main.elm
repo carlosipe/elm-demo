@@ -5,22 +5,15 @@ import Html exposing(div, text, h1, h2)
 import Html.Attributes exposing (class, style)
 import Html.Events exposing (onClick)
 import Dict exposing (Dict)
+import Player exposing(Player)
+import GameState exposing(GameState(..))
 
 -- types
 
 type alias Model =
-    { currentPlayer : Player
-    , gameState : GameState
+    { gameState : GameState
     , board : Board
     }
-
-type Player
-    = Player1
-    | Player2
-
-type GameState
-    = Won Player
-    | Playing
 
 type alias Board =
     { dimensions : ( Int, Int )
@@ -60,8 +53,7 @@ init =
     ( initialModel, Cmd.none )
 
 initialModel =
-    { currentPlayer = Player1
-    , gameState = Playing
+    { gameState = Playing Player.firstPlayer
     , board = initialBoard
     }
 
@@ -78,7 +70,7 @@ update msg model =
         Won player ->
             ( model, Cmd.none )
 
-        Playing ->
+        Playing player ->
             case msg of
                 Play column ->
                     updatePlaying column model
@@ -90,11 +82,11 @@ updatePlaying column model =
             ( model, Cmd.none )
 
         Ok newBoard lastPosition ->
-            case winPlay newBoard ( lastPosition, model.currentPlayer ) of
+            case winPlay newBoard ( lastPosition, GameState.currentPlayer(model.gameState)) of
                 True ->
                     ( { model
                         | board = newBoard
-                        , gameState = Won model.currentPlayer
+                        , gameState = Won(GameState.currentPlayer(model.gameState))
                       }
                     , Cmd.none
                     )
@@ -102,7 +94,7 @@ updatePlaying column model =
                 False ->
                     ( { model
                         | board = newBoard
-                        , currentPlayer = otherPlayer model.currentPlayer
+                        , gameState = GameState.nextPlayer(model.gameState)
                       }
                     , Cmd.none
                     )
@@ -111,7 +103,7 @@ move : Int -> Model -> MoveResult
 move column model =
     let
         board = model.board
-        player = model.currentPlayer
+        player = GameState.currentPlayer(model.gameState)
         position = nextPositionForColumn board column
     in
         case positionInBoard board position of
@@ -120,14 +112,6 @@ move column model =
 
             False ->
                 OutOfBoardError
-
-otherPlayer player =
-    case player of
-        Player1 ->
-            Player2
-
-        Player2 ->
-            Player1
 
 -- view
 
@@ -139,7 +123,7 @@ view model =
 
 headerView model =
     h1[ class "header" ] [
-        text (headerText model.gameState model.currentPlayer)
+        text (headerText model.gameState)
         ]
 
 boardView model =
@@ -162,7 +146,7 @@ boardView model =
 
 boardField fieldContent =
     div
-    [ style "background-color" (fieldContentToColor fieldContent)
+    [ style "background-color" (Player.fieldContentToColor fieldContent)
     , style "border-style" "solid"
     , style "width" "50px"
     , style "height" "50px"
@@ -173,32 +157,14 @@ boardField fieldContent =
 
 -- view helper functions
 
-headerText : GameState -> Player -> String
-headerText gameState currentPlayer =
+headerText : GameState -> String
+headerText gameState =
     case gameState of
-        Playing ->
-            "Playing: " ++ playerToString currentPlayer
+        Playing player ->
+            "Playing: " ++ Player.toString player
 
         Won player ->
-            (playerToString player) ++ " wins"
-
-playerToString : Player -> String
-playerToString player =
-    case player of
-        Player1 ->
-            "Player 1"
-
-        Player2 ->
-            "Player 2"
-
-fieldContentToColor : (Maybe Player) -> String
-fieldContentToColor fieldContent =
-    case fieldContent of
-        Nothing -> "white"
-
-        Just Player1 -> "yellow"
-
-        Just Player2 -> "red"
+            (Player.toString player) ++ " wins"
 
 
 ------------------------------------------------
